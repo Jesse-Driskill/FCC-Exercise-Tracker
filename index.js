@@ -66,6 +66,14 @@ app.post('/api/users/:_id/exercises', (req, res) => {
     exerciseDate = new Date().toUTCString().slice(0,16);
   }
 
+  exerciseDate = exerciseDate.slice(0,3) + exerciseDate.slice(4, exerciseDate.length);
+  exerciseDate = exerciseDate.slice(0,4) + exerciseDate.slice(7, 11) + exerciseDate.slice(4, 6) + exerciseDate.slice(10,exerciseDate.length);
+
+  // let exerciseDate = new Date(req.body.date).toDateString();
+  // if (exerciseDate == "Invalid Date") {
+  //   exerciseDate = new Date().toDateString();
+  // }
+
   let submittedExercise = new Exercise({
     duration: exerciseDuration,
     description: exerciseDescription,
@@ -86,13 +94,23 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 });
 
 app.get('/api/users/:_id/logs', (req, res) => {
+  console.log('=====================================');
+  console.log(req.query);
+  console.log('=====================================');
+
+  let lim = undefined;
+  if (req.query.limit) {
+    lim = parseInt(req.query.limit);
+  }
+
+
   Account.findOne({_id: req.params._id}).then((user) => {
 
-    Exercise.find({userID: req.params._id}).then((exercises) => {
+    Exercise.find({userID: req.params._id}).select('-__v -userID -_id').limit(lim).then((exercises) => {
       res.json({
+        _id: user._id,
         username: user.username,
         count: exercises.length,
-        _id: user._id,
         log: exercises
       });
     }).catch((err) => console.log(err));
